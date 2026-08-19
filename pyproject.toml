@@ -96,8 +96,13 @@ python_classes = ["Test*"]
 python_functions = ["test_*"]
 
 [tool.coverage.run]
-source = ["apps"]
-omit = ["*/migrations/*", "*/tests/*"]
+source = ["apps", "config"]
+omit = [
+    "*/migrations/*",
+    "*/tests/*",
+    "config/settings.py",
+    "config/wsgi.py",
+]
 plugins = ["django_coverage_plugin"]
 
 [tool.coverage.report]
