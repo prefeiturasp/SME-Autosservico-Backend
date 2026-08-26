@@ -24,6 +24,15 @@ _CONTRATO = {
         "por_tipo_perfil": {"codae": 3, "dre": 0, "ue": 0, "empresa": 0},
         "comparativo_acessos": None,
     },
+    "alimentacao_terceirizada": {
+        "medicoes_iniciais": {
+            "aguardando_envio_ue": None,
+            "enviadas_pelas_unidades": None,
+            "aprovadas_pelas_dres": None,
+            "aguardando_codae": None,
+            "aprovadas_codae": None,
+        }
+    },
 }
 
 

@@ -31,6 +31,19 @@ def _usuarios_indisponivel() -> dict[str, Any]:
     }
 
 
+def _contrato(
+    usuarios: dict[str, Any], atualizado_em: str | None
+) -> dict[str, Any]:
+    """Monta o contrato de métricas a partir do bloco de usuários."""
+    return {
+        "atualizado_em": atualizado_em,
+        "usuarios": usuarios,
+        "alimentacao_terceirizada": {
+            "medicoes_iniciais": handler.obter_medicoes_iniciais(),
+        },
+    }
+
+
 def obter_metricas() -> dict[str, Any]:
     """Retorna o contrato de métricas do SIGPAE."""
     consolidado = cache.get(_CHAVE_CACHE_USUARIOS)
@@ -42,16 +55,10 @@ def obter_metricas() -> dict[str, Any]:
             }
         except psycopg.Error:
             logger.exception("Falha ao coletar métricas de usuários do SIGPAE")
-            return {
-                "atualizado_em": None,
-                "usuarios": _usuarios_indisponivel(),
-            }
+            return _contrato(_usuarios_indisponivel(), None)
         cache.set(
             _CHAVE_CACHE_USUARIOS,
             consolidado,
             CACHE_TTL_USUARIOS_SEGUNDOS,
         )
-    return {
-        "atualizado_em": consolidado["atualizado_em"],
-        "usuarios": consolidado["usuarios"],
-    }
+    return _contrato(consolidado["usuarios"], consolidado["atualizado_em"])

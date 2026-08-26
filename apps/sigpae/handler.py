@@ -1,4 +1,4 @@
-"""Handler dos dados de usuários do SIGPAE."""
+"""Handlers dos dados do SIGPAE."""
 
 from typing import Any
 
@@ -17,3 +17,8 @@ def obter_usuarios() -> dict[str, Any]:
         client.consultar(queries.USUARIOS_POR_TIPO_PERFIL)
     )
     return mapper.mapear_usuarios(acesso_ativo, por_tipo_perfil)
+
+
+def obter_medicoes_iniciais() -> dict[str, Any]:
+    """Monta o bloco ``medicoes_iniciais`` do contrato."""
+    return mapper.mapear_medicoes_iniciais()
