@@ -29,8 +29,25 @@ class UsuariosSerializer(serializers.Serializer):
     comparativo_acessos = serializers.JSONField(allow_null=True)
 
 
+class MedicoesIniciaisSerializer(serializers.Serializer):
+    """Funil de medições iniciais da alimentação terceirizada."""
+
+    aguardando_envio_ue = serializers.IntegerField(allow_null=True)
+    enviadas_pelas_unidades = serializers.IntegerField(allow_null=True)
+    aprovadas_pelas_dres = serializers.IntegerField(allow_null=True)
+    aguardando_codae = serializers.IntegerField(allow_null=True)
+    aprovadas_codae = serializers.IntegerField(allow_null=True)
+
+
+class AlimentacaoTerceirizadaSerializer(serializers.Serializer):
+    """Bloco de métricas da alimentação terceirizada do SIGPAE."""
+
+    medicoes_iniciais = MedicoesIniciaisSerializer()
+
+
 class MetricasSigpaeSerializer(serializers.Serializer):
     """Contrato de métricas do SIGPAE entregue ao BFF."""
 
     atualizado_em = serializers.CharField(allow_null=True)
     usuarios = UsuariosSerializer()
+    alimentacao_terceirizada = AlimentacaoTerceirizadaSerializer()

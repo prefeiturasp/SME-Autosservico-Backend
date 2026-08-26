@@ -92,6 +92,8 @@ class TestService:
 
         assert primeiro["atualizado_em"] is not None
         assert primeiro["usuarios"]["com_acesso_ativo"]["total"] == 10
+        medicoes = primeiro["alimentacao_terceirizada"]["medicoes_iniciais"]
+        assert medicoes["aguardando_envio_ue"] is None
 
         with patch("apps.sigpae.client.consultar") as consultar:
             service.obter_metricas()
@@ -108,3 +110,5 @@ class TestService:
         assert resultado["atualizado_em"] is None
         assert resultado["usuarios"]["com_acesso_ativo"] is None
         assert resultado["usuarios"]["por_tipo_perfil"]["codae"] is None
+        medicoes = resultado["alimentacao_terceirizada"]["medicoes_iniciais"]
+        assert medicoes["enviadas_pelas_unidades"] is None
