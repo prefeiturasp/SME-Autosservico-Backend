@@ -82,6 +82,7 @@ THIRD_PARTY_APPS = [
 ]
 LOCAL_APPS = [
     "apps.core",
+    "apps.sigpae",
 ]
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
@@ -150,6 +151,10 @@ MANAGERS = ADMINS
 API_KEY = env("API_KEY", default="")
 API_KEY_HEADER = env("API_KEY_HEADER", default="X-Api-Key")
 
+# Connection string somente-leitura do banco do SIGPAE. Deve incluir
+# connect_timeout e sslmode=prefer (o servidor não suporta SSL).
+SIGPAE_DSN = env("SIGPAE_DSN", default="")
+
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "apps.core.authentication.ApiKeyAuthentication",
@@ -158,6 +163,7 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": (
         "rest_framework.permissions.IsAuthenticated",
     ),
+    "UNAUTHENTICATED_USER": None,
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
 
