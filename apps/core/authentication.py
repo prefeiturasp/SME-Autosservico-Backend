@@ -1,12 +1,26 @@
 """Autenticação por chave de API, padrão SME para microsserviços."""
 
 import hmac
+from dataclasses import dataclass
 
 from django.conf import settings
-from django.contrib.auth.models import AnonymousUser
 from rest_framework import authentication
 from rest_framework import exceptions
 from rest_framework.request import Request
+
+
+@dataclass(frozen=True)
+class ServicoAutenticado:
+    """Representa o serviço chamador autenticado via chave de API.
+
+    A chave identifica um serviço (ex.: o BFF), não um usuário do banco,
+    por isso esta classe expõe apenas o contrato mínimo exigido pelas
+    permissions do DRF (``is_authenticated``) em vez de um
+    ``django.contrib.auth.models.User``.
+    """
+
+    is_authenticated: bool = True
+    is_anonymous: bool = False
 
 
 class ApiKeyAuthentication(authentication.BaseAuthentication):
@@ -18,16 +32,17 @@ class ApiKeyAuthentication(authentication.BaseAuthentication):
 
     def authenticate(
         self, request: Request
-    ) -> tuple[AnonymousUser, None] | None:
+    ) -> tuple[ServicoAutenticado, None] | None:
         """Valida a chave de API enviada na requisição.
 
         Args:
             request: Requisição HTTP recebida.
 
         Returns:
-            Uma tupla ``(AnonymousUser(), None)`` quando a chave é válida,
-            ou ``None`` quando nenhum header de chave foi enviado (deixando
-            a decisão para outras classes de autenticação/permissão).
+            Uma tupla ``(ServicoAutenticado(), None)`` quando a chave é
+            válida, ou ``None`` quando nenhum header de chave foi enviado
+            (deixando a decisão para outras classes de
+            autenticação/permissão).
 
         Raises:
             AuthenticationFailed: Quando o header foi enviado, mas a chave
@@ -40,4 +55,19 @@ class ApiKeyAuthentication(authentication.BaseAuthentication):
             api_key, settings.API_KEY
         ):
             raise exceptions.AuthenticationFailed("Chave de API inválida.")
-        return (AnonymousUser(), None)
+        return (ServicoAutenticado(), None)
+
+    def authenticate_header(self, request: Request) -> str:
+        """Nome do header esperado, usado pelo DRF para a resposta 401.
+
+        Sem isto, o DRF rebaixa automaticamente respostas de credenciais
+        ausentes/inválidas de 401 para 403 (a especificação HTTP exige um
+        header ``WWW-Authenticate`` em respostas 401).
+
+        Args:
+            request: Requisição HTTP recebida.
+
+        Returns:
+            Nome do header de API Key configurado via ``API_KEY_HEADER``.
+        """
+        return str(settings.API_KEY_HEADER)

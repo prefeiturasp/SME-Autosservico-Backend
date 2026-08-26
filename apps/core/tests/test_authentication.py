@@ -37,4 +37,4 @@ class TestApiKeyAuthentication:
         assert result is not None
         user, auth = result
         assert auth is None
-        assert user.is_anonymous
+        assert user.is_authenticated
