@@ -1,14 +1,4 @@
-"""Leitura somente-leitura de bancos PostgreSQL de sistemas externos.
-
-Infraestrutura genérica reaproveitável por qualquer domínio que precise
-ler (nunca escrever) dados relacionais de um sistema legado da SME. Não
-usa ORM/migrations: quem chama já traz a connection string e o SQL
-prontos.
-
-Cada tentativa abre e fecha a própria conexão. Falhas de conexão são
-retentadas com backoff exponencial; erros de sintaxe/permissão do SQL
-não são retentados, pois não se resolvem sozinhos.
-"""
+"""Leitura somente-leitura de bancos PostgreSQL de sistemas externos."""
 
 import time
 from typing import Any
@@ -26,24 +16,7 @@ def executar_consulta_leitura(
     params: tuple[Any, ...] = (),
     tentativas: int = _TENTATIVAS_PADRAO,
 ) -> list[dict[str, Any]]:
-    """Executa uma consulta SQL somente-leitura num banco externo.
-
-    Args:
-        connection_string: String de conexão de um usuário com permissão
-            apenas de ``SELECT``. Deve incluir ``connect_timeout`` para
-            limitar o tempo de indisponibilidade.
-        query: Consulta SQL a executar.
-        params: Parâmetros posicionais da consulta, se houver.
-        tentativas: Número máximo de tentativas em caso de falha de
-            conexão.
-
-    Returns:
-        As linhas retornadas, cada uma como um dicionário coluna→valor.
-
-    Raises:
-        psycopg.OperationalError: Se todas as tentativas de conexão
-            falharem.
-    """
+    """Executa uma consulta somente-leitura, com retry e backoff."""
     ultimo_erro: psycopg.OperationalError | None = None
     for tentativa in range(1, tentativas + 1):
         try:

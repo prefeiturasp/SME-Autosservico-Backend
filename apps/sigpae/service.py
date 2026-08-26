@@ -1,10 +1,4 @@
-"""Serviço de métricas do SIGPAE.
-
-Entrega o contrato consumido pelo BFF. Usa cache local (§7 do
-Discovery) para não consultar o banco do SIGPAE a cada requisição e
-degrada para valores nulos em caso de indisponibilidade, timeout ou
-falha de comunicação, sem propagar erro ao consumidor.
-"""
+"""Serviço de métricas do SIGPAE."""
 
 import logging
 from typing import Any
@@ -22,12 +16,7 @@ CACHE_TTL_USUARIOS_SEGUNDOS = 300
 
 
 def _usuarios_indisponivel() -> dict[str, Any]:
-    """Bloco ``usuarios`` com todos os indicadores nulos.
-
-    Returns:
-        Bloco ``usuarios`` degradado, usado quando o banco do SIGPAE não
-        responde.
-    """
+    """Bloco ``usuarios`` com todos os indicadores nulos."""
     return {
         "com_acesso_ativo": None,
         "unicos_por_dia": None,
@@ -43,12 +32,7 @@ def _usuarios_indisponivel() -> dict[str, Any]:
 
 
 def obter_metricas() -> dict[str, Any]:
-    """Retorna o contrato de métricas do SIGPAE.
-
-    Returns:
-        Contrato com ``atualizado_em`` (``None`` quando degradado) e o
-        bloco ``usuarios``.
-    """
+    """Retorna o contrato de métricas do SIGPAE."""
     consolidado = cache.get(_CHAVE_CACHE_USUARIOS)
     if consolidado is None:
         try:

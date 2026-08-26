@@ -1,8 +1,4 @@
-"""Handler dos dados de usuários do SIGPAE.
-
-Orquestra o fluxo de aquisição: dispara as queries no banco, delega a
-interpretação ao parser e a transformação ao mapper.
-"""
+"""Handler dos dados de usuários do SIGPAE."""
 
 from typing import Any
 
@@ -13,11 +9,7 @@ from apps.sigpae import queries
 
 
 def obter_usuarios() -> dict[str, Any]:
-    """Coleta e monta o bloco ``usuarios`` do contrato.
-
-    Returns:
-        Bloco ``usuarios`` no formato do contrato de entrega.
-    """
+    """Coleta e monta o bloco ``usuarios`` do contrato."""
     acesso_ativo = parser.parse_acesso_ativo(
         client.consultar(queries.USUARIOS_ACESSO_ATIVO)
     )

@@ -1,8 +1,4 @@
-"""Serializers da API do app sigpae.
-
-Refletem o contrato de entrega ao BFF definido no Discovery
-(AB#154283). Indicadores sem fonte de dado são entregues como ``null``.
-"""
+"""Serializers da API do app sigpae."""
 
 from rest_framework import serializers
 

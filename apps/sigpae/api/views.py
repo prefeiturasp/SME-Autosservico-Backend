@@ -12,12 +12,7 @@ from apps.sigpae.api.serializers import MetricasSigpaeSerializer
 
 
 class MetricasSigpaeView(APIView):
-    """Métricas do SIGPAE para o dashboard, via leitura direta do banco.
-
-    Lê o cache local de métricas já consolidadas. Quando o cache está
-    frio, consulta o banco do SIGPAE na hora; em caso de falha, devolve
-    o contrato com indicadores nulos.
-    """
+    """Métricas do SIGPAE, via leitura direta do banco."""
 
     serializer_class = MetricasSigpaeSerializer
 
@@ -28,11 +23,7 @@ class MetricasSigpaeView(APIView):
         responses=MetricasSigpaeSerializer,
     )
     def get(self, request: Request, *args: Any, **kwargs: Any) -> Response:
-        """Retorna o contrato de métricas do SIGPAE.
-
-        Returns:
-            Response: contrato de métricas (bloco ``usuarios``).
-        """
+        """Retorna o contrato de métricas do SIGPAE."""
         serializer = self.serializer_class(data=service.obter_metricas())
         serializer.is_valid(raise_exception=True)
         return Response(serializer.validated_data)

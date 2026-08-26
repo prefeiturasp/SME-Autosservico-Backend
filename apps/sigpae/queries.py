@@ -1,9 +1,4 @@
-"""Consultas SQL de leitura no banco do SIGPAE.
-
-Queries validadas no Discovery de contrato (AB#154283). Somente
-leitura. ``perfil_usuario.last_login`` guarda apenas o último acesso,
-não uma série histórica.
-"""
+"""Consultas SQL de leitura no banco do SIGPAE."""
 
 USUARIOS_ACESSO_ATIVO = """
 select

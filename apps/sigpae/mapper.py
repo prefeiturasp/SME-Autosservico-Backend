@@ -1,10 +1,4 @@
-"""Mapper dos dados de usuários para o contrato de entrega ao BFF.
-
-Transforma a saída do parser no bloco ``usuarios`` do contrato. Os
-indicadores sem fonte de dado no SIGPAE (únicos por dia, acessos hoje,
-comparativo de acessos) são entregues como ``None`` — gap aceito como
-decisão de produto no Discovery (AB#154283).
-"""
+"""Mapper dos dados de usuários para o contrato de entrega ao BFF."""
 
 from typing import Any
 
@@ -15,15 +9,7 @@ def mapear_usuarios(
     acesso_ativo: dict[str, int],
     por_tipo_perfil: dict[str, int],
 ) -> dict[str, Any]:
-    """Monta o bloco ``usuarios`` do contrato.
-
-    Args:
-        acesso_ativo: Saída de ``parser.parse_acesso_ativo``.
-        por_tipo_perfil: Saída de ``parser.parse_por_tipo_perfil``.
-
-    Returns:
-        Bloco ``usuarios`` no formato do contrato de entrega.
-    """
+    """Monta o bloco ``usuarios`` do contrato."""
     return {
         "com_acesso_ativo": {
             "total": acesso_ativo["total"],
