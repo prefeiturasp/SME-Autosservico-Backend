@@ -83,6 +83,7 @@ THIRD_PARTY_APPS = [
 LOCAL_APPS = [
     "apps.core",
     "apps.sigpae",
+    "apps.sgp",
 ]
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
@@ -154,6 +155,10 @@ API_KEY_HEADER = env("API_KEY_HEADER", default="X-Api-Key")
 # Connection string somente-leitura do banco do SIGPAE. Deve incluir
 # connect_timeout e sslmode=prefer (o servidor não suporta SSL).
 SIGPAE_DSN = env("SIGPAE_DSN", default="")
+
+# Connection string somente-leitura do banco do SGP (sgp_db_qa). Mesmo
+# padrão do SIGPAE_DSN (connect_timeout e sslmode conforme o servidor).
+SGP_DSN = env("SGP_DSN", default="")
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
