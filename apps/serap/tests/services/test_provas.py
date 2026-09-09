@@ -56,7 +56,7 @@ class TestMapper:
             }
         )
 
-        assert bloco["percentual_finalizadas"] == 80.0
+        assert bloco["percentual_finalizadas"] == pytest.approx(80.0)
         assert bloco["finalizadas"] == 80
         assert bloco["iniciadas_hoje"] == 5
 
@@ -71,7 +71,7 @@ class TestMapper:
             }
         )
 
-        assert bloco["percentual_finalizadas"] == 0.0
+        assert bloco["percentual_finalizadas"] == pytest.approx(0.0)
 
 
 class TestHandler:
@@ -109,7 +109,9 @@ class TestService:
         assert primeiro["atualizado_em"] is not None
         assert primeiro["ano"] == 2026
         assert primeiro["provas"]["total"] == 100
-        assert primeiro["provas"]["percentual_finalizadas"] == 80.0
+        assert primeiro["provas"]["percentual_finalizadas"] == pytest.approx(
+            80.0
+        )
 
         with patch("apps.serap.client.consultar") as consultar:
             service.obter_provas(2026, 2)

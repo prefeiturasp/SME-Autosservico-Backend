@@ -66,4 +66,4 @@ class TestMetricasProvasSerapView:
         obter.assert_called_once_with(2026, 2)
         corpo = response.json()
         assert corpo["provas"]["total"] == 8398
-        assert corpo["provas"]["percentual_finalizadas"] == 76.2
+        assert corpo["provas"]["percentual_finalizadas"] == pytest.approx(76.2)
