@@ -84,6 +84,7 @@ LOCAL_APPS = [
     "apps.core",
     "apps.sigpae",
     "apps.sgp",
+    "apps.serap",
 ]
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
@@ -159,6 +160,10 @@ SIGPAE_DSN = env("SIGPAE_DSN", default="")
 # Connection string somente-leitura do banco do SGP (sgp_db_qa). Mesmo
 # padrão do SIGPAE_DSN (connect_timeout e sslmode conforme o servidor).
 SGP_DSN = env("SGP_DSN", default="")
+
+# Connection string somente-leitura do banco do SERAp Estudantes
+# (métricas de provas). Mesmo padrão dos demais DSNs de leitura.
+SERAP_ESTUDANTES_DSN = env("SERAP_ESTUDANTES_DSN", default="")
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
