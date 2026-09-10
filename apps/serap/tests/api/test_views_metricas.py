@@ -49,6 +49,21 @@ class TestMetricasProvasSerapView:
         assert response.status_code == http_status.HTTP_400_BAD_REQUEST
         assert "ano" in response.json()
 
+    def test_parametro_nao_inteiro(
+        self, api_client: APIClient, settings
+    ) -> None:
+        """Parâmetro não inteiro retorna 400."""
+        settings.API_KEY = "chave-correta"
+
+        response = api_client.get(
+            _url(),
+            {"ano": "abc", "bimestre": 2},
+            HTTP_X_API_KEY="chave-correta",
+        )
+
+        assert response.status_code == http_status.HTTP_400_BAD_REQUEST
+        assert "ano" in response.json()
+
     def test_retorna_contrato(self, api_client: APIClient, settings) -> None:
         """O contrato de provas é serializado corretamente."""
         settings.API_KEY = "chave-correta"
