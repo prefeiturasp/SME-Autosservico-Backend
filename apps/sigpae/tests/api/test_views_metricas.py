@@ -18,7 +18,11 @@ def _url() -> str:
 _CONTRATO = {
     "atualizado_em": "2026-08-25T10:00:00-03:00",
     "usuarios": {
-        "com_acesso_ativo": {"total": 10, "ativos_30_dias": 4},
+        "com_acesso_ativo": {
+            "total": 10,
+            "ativos_30_dias": 4,
+            "novos_30_dias": 2,
+        },
         "unicos_por_dia": None,
         "acessos_hoje": None,
         "por_tipo_perfil": {"codae": 3, "dre": 0, "ue": 0, "empresa": 0},
@@ -31,7 +35,94 @@ _CONTRATO = {
             "aprovadas_pelas_dres": None,
             "aguardando_codae": None,
             "aprovadas_codae": None,
-        }
+        },
+        "produtos_homologados": {
+            "total_cadastrados": 6,
+            "homologados": 0,
+            "solicitacoes_no_mes": 0,
+            "solicitacoes_no_ano": 0,
+        },
+        "empresas_terceirizadas": {"cadastradas": 7, "ativas": 5},
+        "solicitacoes_dietas_especiais": {
+            "dia": {
+                "total": 0,
+                "autorizadas": 0,
+                "aguardando": 0,
+                "negadas": 0,
+                "canceladas": 0,
+            },
+            "quinzena": {
+                "total": 5,
+                "autorizadas": 2,
+                "aguardando": 3,
+                "negadas": 0,
+                "canceladas": 0,
+            },
+            "mes": {
+                "total": 5,
+                "autorizadas": 2,
+                "aguardando": 3,
+                "negadas": 0,
+                "canceladas": 0,
+            },
+            "trimestre": {
+                "total": 5,
+                "autorizadas": 2,
+                "aguardando": 3,
+                "negadas": 0,
+                "canceladas": 0,
+            },
+        },
+        "solicitacoes_alimentacoes": {
+            "dia": {
+                "total": 0,
+                "autorizadas": 0,
+                "aguardando": 0,
+                "negadas": 0,
+                "canceladas": 0,
+            },
+            "quinzena": {
+                "total": 19,
+                "autorizadas": 10,
+                "aguardando": 0,
+                "negadas": 9,
+                "canceladas": 0,
+            },
+            "mes": {
+                "total": 19,
+                "autorizadas": 10,
+                "aguardando": 0,
+                "negadas": 9,
+                "canceladas": 0,
+            },
+            "trimestre": {
+                "total": 19,
+                "autorizadas": 10,
+                "aguardando": 0,
+                "negadas": 9,
+                "canceladas": 0,
+            },
+        },
+    },
+    "logistica": {
+        "cronogramas_entregas": {
+            "aguardando": 2,
+            "enviadas": 3,
+            "aprovadas": 1,
+        },
+        "fichas_tecnicas_produtos": {
+            "cadastradas": 10,
+            "aprovadas": 6,
+            "em_analise": 3,
+            "pendentes_correcao": 1,
+        },
+        "fornecedores_distribuidores": {"cadastradas": 8, "ativas": 5},
+        "layouts_embalagens": {
+            "cadastrados": 7,
+            "aprovados": 4,
+            "aguardando_codae": 2,
+            "pendentes_correcao": 1,
+        },
     },
 }
 
@@ -61,6 +152,7 @@ class TestMetricasSigpaeView:
         assert corpo["usuarios"]["com_acesso_ativo"] == {
             "total": 10,
             "ativos_30_dias": 4,
+            "novos_30_dias": 2,
         }
         assert corpo["usuarios"]["unicos_por_dia"] is None
         assert corpo["usuarios"]["por_tipo_perfil"]["codae"] == 3
