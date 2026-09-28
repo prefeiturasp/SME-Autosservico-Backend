@@ -43,11 +43,21 @@ def obter_conselho_classe(ano_letivo: int, bimestre: int) -> dict[str, Any]:
     return mapper.mapear_conselho_classe(por_situacao, alunos_ativos)
 
 
-def obter_frequencias() -> dict[str, Any]:
-    """Monta o bloco ``frequencias`` (deferido, indicadores nulos)."""
-    return mapper.mapear_frequencias()
+def obter_frequencias(ano_letivo: int, bimestre: int) -> dict[str, Any]:
+    """Coleta e monta o bloco ``frequencias`` do contrato."""
+    dados = parser.parse_frequencias(
+        client.consultar(
+            queries.FREQUENCIAS_LANCADAS_ESPERADAS, (ano_letivo, bimestre)
+        )
+    )
+    return mapper.mapear_frequencias(dados)
 
 
-def obter_sondagens() -> dict[str, Any]:
-    """Monta o bloco ``sondagens`` (deferido/nulo)."""
-    return mapper.mapear_sondagens()
+def obter_sondagens(ano_letivo: int, bimestre: int) -> dict[str, Any]:
+    """Coleta e monta o bloco ``sondagens`` do contrato."""
+    dados = parser.parse_sondagens(
+        client.consultar(
+            queries.SONDAGENS_REALIZADAS_ESPERADAS, (ano_letivo, bimestre)
+        )
+    )
+    return mapper.mapear_sondagens(dados)

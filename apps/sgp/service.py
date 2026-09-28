@@ -70,8 +70,8 @@ def obter_metricas(ano_letivo: int, bimestre: int) -> dict[str, Any]:
             bimestre,
             atualizado_em=timezone.now().isoformat(),
             usuarios=handler.obter_usuarios(),
-            frequencias=handler.obter_frequencias(),
-            sondagens=handler.obter_sondagens(),
+            frequencias=handler.obter_frequencias(ano_letivo, bimestre),
+            sondagens=handler.obter_sondagens(ano_letivo, bimestre),
             fechamento=handler.obter_fechamento(ano_letivo, bimestre),
             conselho_classe=handler.obter_conselho_classe(
                 ano_letivo, bimestre

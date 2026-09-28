@@ -63,21 +63,21 @@ def mapear_conselho_classe(
     }
 
 
-def mapear_frequencias() -> dict[str, Any]:
-    """Monta o bloco ``frequencias``.
+def mapear_frequencias(dados: dict[str, int]) -> dict[str, Any]:
+    """Monta o bloco ``frequencias`` (lançadas/esperadas + percentual)."""
+    lancadas = dados["lancadas"]
+    esperadas = dados["esperadas"]
+    percentual = round(lancadas / esperadas * 100, 1) if esperadas else 0.0
+    return {
+        "lancadas": lancadas,
+        "esperadas": esperadas,
+        "percentual": percentual,
+    }
 
-    Deferido: a query depende da janela de datas do bimestre, ainda não
-    definida no discovery, e os valores precisam de ambiente com dado de
-    2026 para validação. Retorna o bloco com indicadores nulos.
-    """
-    return {"lancadas": None, "esperadas": None, "percentual": None}
 
-
-def mapear_sondagens() -> dict[str, Any]:
-    """Monta o bloco ``sondagens``.
-
-    ``realizadas`` é deferido (fonte no banco ``db_sondagem_qa``, ainda não
-    conectado). ``esperadas`` é nulo por decisão do discovery: a fonte real
-    é calculada ao vivo pelo serviço de Sondagem, sem réplica confiável.
-    """
-    return {"realizadas": None, "esperadas": None}
+def mapear_sondagens(dados: dict[str, int]) -> dict[str, Any]:
+    """Monta o bloco ``sondagens`` (realizadas/esperadas)."""
+    return {
+        "realizadas": dados["realizadas"],
+        "esperadas": dados["esperadas"],
+    }

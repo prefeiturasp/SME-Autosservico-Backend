@@ -62,3 +62,47 @@ where at.situacaomatricula = 'Ativo'
     and t.ano_letivo = %s
     and t.tipo_turma = 1
 """
+
+# Sondagens de escrita realizadas x esperadas, por ano letivo e bimestre.
+# "esperadas" = total de alunos com sondagem prevista; "realizadas" = os
+# que têm nível preenchido (total menos os sem preenchimento).
+SONDAGENS_REALIZADAS_ESPERADAS = """
+select
+    coalesce(sum(quantidade_aluno), 0) as esperadas,
+    coalesce(
+        sum(quantidade_aluno - coalesce(sem_preenchimento, 0)), 0
+    ) as realizadas
+from painel_educacional_consolidacao_sondagem_escrita_ue
+where ano_letivo = %s and bimestre = %s
+"""
+
+# Frequências lançadas x esperadas, por ano letivo e bimestre. Usa a
+# consolidação por turma/bimestre (tipo_consolidacao = 1): total_aulas são
+# as esperadas e total_frequencias as lançadas. O bimestre vem de
+# periodo_escolar, casando o calendário da turma pela modalidade
+# (modalidade_codigo do EOL -> modalidade do tipo de calendário:
+# 1=Infantil, 3=EJA, demais=Fundamental/Médio) e pela data de início do
+# período de consolidação dentro da janela do bimestre.
+FREQUENCIAS_LANCADAS_ESPERADAS = """
+select
+    coalesce(sum(cft.total_aulas), 0) as esperadas,
+    coalesce(sum(cft.total_frequencias), 0) as lancadas
+from consolidacao_frequencia_turma cft
+join turma t on t.id = cft.turma_id
+join tipo_calendario tc
+    on tc.ano_letivo = t.ano_letivo
+    and not tc.excluido
+    and tc.modalidade = case t.modalidade_codigo
+        when 1 then 3
+        when 3 then 2
+        else 1
+    end
+join periodo_escolar pe
+    on pe.tipo_calendario_id = tc.id
+    and cft.periodo_inicio >= pe.periodo_inicio
+    and cft.periodo_inicio <= pe.periodo_fim
+where cft.tipo_consolidacao = 1
+    and t.ano_letivo = %s
+    and t.tipo_turma in (1, 2, 7)
+    and pe.bimestre = %s
+"""

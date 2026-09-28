@@ -16,10 +16,13 @@ def _limpar_cache() -> None:
 
 
 # Ordem das consultas em obter_metricas: acesso ativo, unidades,
-# fechamento, conselho (situação), conselho (alunos ativos).
+# frequências, sondagens, fechamento, conselho (situação),
+# conselho (alunos ativos).
 _CONSULTAS_OK = [
     [{"total": 8398, "ativos_30_dias": 453}],
     [{"total": 200, "diretorias": 13}],
+    [{"esperadas": 21760, "lancadas": 18432}],
+    [{"esperadas": 2683, "realizadas": 1243}],
     [{"situacao": 3, "quantidade": 7530}],
     [{"situacao": 1, "quantidade": 387}],
     [{"alunos_ativos": 591}],
@@ -40,7 +43,9 @@ class TestService:
         assert primeiro["usuarios"]["com_acesso_ativo"]["valor"] == 8398
         assert primeiro["fechamento"]["processado_sucesso"] == 7530
         assert primeiro["conselho_classe"]["nao_iniciados"] == 204
-        assert primeiro["frequencias"]["lancadas"] is None
+        assert primeiro["sondagens"] == {"realizadas": 1243, "esperadas": 2683}
+        assert primeiro["frequencias"]["lancadas"] == 18432
+        assert primeiro["frequencias"]["esperadas"] == 21760
 
         with patch("apps.sgp.client.consultar") as consultar:
             service.obter_metricas(2026, 2)
@@ -53,7 +58,7 @@ class TestService:
             service.obter_metricas(2026, 2)
             service.obter_metricas(2026, 3)
 
-        assert consultar.call_count == 10
+        assert consultar.call_count == 14
 
     def test_falha_de_banco_degrada_para_nulos(self) -> None:
         """Falha de conexão devolve o contrato com blocos nulos."""
