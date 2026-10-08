@@ -1,26 +1,37 @@
 """Testes do cliente de leitura de bancos MySQL externos."""
 
+from typing import Any
 from unittest.mock import MagicMock
 from unittest.mock import patch
-from urllib.parse import quote
 
 import pymysql
 import pytest
 
 from apps.core.mysql_leitura import executar_consulta_leitura
 
-_USUARIO = "leitor"
-_CHAVE_FICTICIA = "s@nha"
+# O parse da URL é do django-environ; aqui ele é simulado, sem URL de banco
+# no código (o Sonar aponta qualquer connection string como segredo).
+_DSN = "dsn"
+_SENHA = object()
 
 
-# DSN montado em runtime para não deixar URL com credencial literal no
-# código (o Sonar trata qualquer usuario:senha@host como segredo).
-def _dsn(porta: str = ":3307") -> str:
-    credenciais = f"{_USUARIO}:{quote(_CHAVE_FICTICIA, safe='')}"
-    return f"mysql://{credenciais}@intranet-db{porta}/intranet_dev"
+def _config(porta: int | str = 3307) -> dict[str, Any]:
+    return {
+        "HOST": "intranet-db",
+        "PORT": porta,
+        "USER": "leitor",
+        "PASSWORD": _SENHA,
+        "NAME": "intranet_dev",
+    }
 
 
-_DSN = _dsn()
+@pytest.fixture(autouse=True)
+def db_url_config():
+    with patch(
+        "apps.core.mysql_leitura.environ.Env.db_url_config",
+        return_value=_config(),
+    ) as db_url_config:
+        yield db_url_config
 
 
 def _conexao_mock(linhas: list[dict]) -> tuple[MagicMock, MagicMock]:
@@ -48,7 +59,9 @@ class TestExecutarConsultaLeitura:
         assert linhas == [{"total": 1}]
         cursor.execute.assert_called_once_with("select %(x)s", {"x": 1})
 
-    def test_converte_dsn_em_parametros_com_timeouts(self) -> None:
+    def test_converte_dsn_em_parametros_com_timeouts(
+        self, db_url_config: MagicMock
+    ) -> None:
         cm_conexao, _ = _conexao_mock([])
 
         with patch(
@@ -57,23 +70,27 @@ class TestExecutarConsultaLeitura:
         ) as connect:
             executar_consulta_leitura(_DSN, "select 1")
 
+        db_url_config.assert_called_once_with(_DSN)
         kwargs = connect.call_args.kwargs
         assert kwargs["host"] == "intranet-db"
         assert kwargs["port"] == 3307
-        assert kwargs["user"] == _USUARIO
-        assert kwargs["password"] == _CHAVE_FICTICIA
+        assert kwargs["user"] == "leitor"
+        assert kwargs["password"] is _SENHA
         assert kwargs["database"] == "intranet_dev"
         assert kwargs["connect_timeout"] > 0
         assert kwargs["read_timeout"] > 0
 
-    def test_porta_padrao_quando_ausente(self) -> None:
+    def test_porta_padrao_quando_ausente(
+        self, db_url_config: MagicMock
+    ) -> None:
+        db_url_config.return_value = _config(porta="")
         cm_conexao, _ = _conexao_mock([])
 
         with patch(
             "apps.core.mysql_leitura.pymysql.connect",
             return_value=cm_conexao,
         ) as connect:
-            executar_consulta_leitura(_dsn(porta=""), "select 1")
+            executar_consulta_leitura(_DSN, "select 1")
 
         assert connect.call_args.kwargs["port"] == 3306
 
