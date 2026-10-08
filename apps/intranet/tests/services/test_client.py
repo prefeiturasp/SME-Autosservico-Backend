@@ -10,7 +10,7 @@ class TestClient:
 
     def test_usa_dsn_do_intranet(self, settings) -> None:
         """A consulta usa ``INTRANET_DSN`` e repassa os parâmetros."""
-        settings.INTRANET_DSN = "mysql://u:p@h/intranet"
+        settings.INTRANET_DSN = "mysql://intranet-db/intranet"
 
         with patch(
             "apps.intranet.client.executar_consulta_leitura",
@@ -20,5 +20,5 @@ class TestClient:
 
         assert linhas == [{"total": 1}]
         executar.assert_called_once_with(
-            "mysql://u:p@h/intranet", "select %(x)s", {"x": 1}
+            "mysql://intranet-db/intranet", "select %(x)s", {"x": 1}
         )

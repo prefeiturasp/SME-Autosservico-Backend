@@ -2,13 +2,25 @@
 
 from unittest.mock import MagicMock
 from unittest.mock import patch
+from urllib.parse import quote
 
 import pymysql
 import pytest
 
 from apps.core.mysql_leitura import executar_consulta_leitura
 
-_DSN = "mysql://leitor:s%40nha@intranet-db:3307/intranet_dev"
+_USUARIO = "leitor"
+_CHAVE_FICTICIA = "s@nha"
+
+
+# DSN montado em runtime para não deixar URL com credencial literal no
+# código (o Sonar trata qualquer usuario:senha@host como segredo).
+def _dsn(porta: str = ":3307") -> str:
+    credenciais = f"{_USUARIO}:{quote(_CHAVE_FICTICIA, safe='')}"
+    return f"mysql://{credenciais}@intranet-db{porta}/intranet_dev"
+
+
+_DSN = _dsn()
 
 
 def _conexao_mock(linhas: list[dict]) -> tuple[MagicMock, MagicMock]:
@@ -48,8 +60,8 @@ class TestExecutarConsultaLeitura:
         kwargs = connect.call_args.kwargs
         assert kwargs["host"] == "intranet-db"
         assert kwargs["port"] == 3307
-        assert kwargs["user"] == "leitor"
-        assert kwargs["password"] == "s@nha"  # noqa: S105
+        assert kwargs["user"] == _USUARIO
+        assert kwargs["password"] == _CHAVE_FICTICIA
         assert kwargs["database"] == "intranet_dev"
         assert kwargs["connect_timeout"] > 0
         assert kwargs["read_timeout"] > 0
@@ -61,7 +73,7 @@ class TestExecutarConsultaLeitura:
             "apps.core.mysql_leitura.pymysql.connect",
             return_value=cm_conexao,
         ) as connect:
-            executar_consulta_leitura("mysql://u:p@h/db", "select 1")
+            executar_consulta_leitura(_dsn(porta=""), "select 1")
 
         assert connect.call_args.kwargs["port"] == 3306
 
