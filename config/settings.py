@@ -85,6 +85,7 @@ LOCAL_APPS = [
     "apps.sigpae",
     "apps.sgp",
     "apps.serap",
+    "apps.intranet",
 ]
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
@@ -164,6 +165,11 @@ SGP_DSN = env("SGP_DSN", default="")
 # Connection string somente-leitura do banco do SERAp Estudantes
 # (métricas de provas). Mesmo padrão dos demais DSNs de leitura.
 SERAP_ESTUDANTES_DSN = env("SERAP_ESTUDANTES_DSN", default="")
+
+# Connection string somente-leitura do banco MySQL do Intranet (WordPress),
+# no formato mysql://usuario:senha@host:porta/banco. Timeouts de conexão e
+# leitura ficam em apps/core/mysql_leitura.py.
+INTRANET_DSN = env("INTRANET_DSN", default="")
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (

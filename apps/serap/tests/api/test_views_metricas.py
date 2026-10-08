@@ -57,7 +57,7 @@ class TestMetricasProvasSerapView:
 
         response = api_client.get(
             _url(),
-            {"ano": "abc", "bimestre": 2},
+            {"ano": "abc", "bimestre": "2"},
             HTTP_X_API_KEY="chave-correta",
         )
 
