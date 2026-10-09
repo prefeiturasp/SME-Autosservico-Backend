@@ -1,4 +1,4 @@
-"""Serviço de métricas de provas do SERAp Estudantes."""
+"""Serviço de métricas do SERAp Estudantes (usuários e provas)."""
 
 import logging
 from typing import Any
@@ -34,19 +34,21 @@ def _contrato(
     bimestre: int,
     *,
     atualizado_em: str | None,
+    usuarios: dict[str, Any] | None,
     provas: dict[str, Any] | None,
 ) -> dict[str, Any]:
-    """Monta o contrato de métricas de provas do SERAp."""
+    """Monta o contrato de métricas do SERAp."""
     return {
         "atualizado_em": atualizado_em,
         "ano": ano,
         "bimestre": bimestre,
+        "usuarios": usuarios,
         "provas": provas,
     }
 
 
 def obter_provas(ano: int, bimestre: int) -> dict[str, Any]:
-    """Retorna o contrato de métricas de provas para o período."""
+    """Retorna o contrato de métricas (usuários e provas) do período."""
     chave = _chave_cache(ano, bimestre)
     cacheado: dict[str, Any] | None = cache.get(chave)
     if cacheado is not None:
@@ -57,11 +59,14 @@ def obter_provas(ano: int, bimestre: int) -> dict[str, Any]:
             ano,
             bimestre,
             atualizado_em=timezone.now().isoformat(),
+            usuarios=handler.obter_usuarios(),
             provas=handler.obter_provas(_janela(ano, bimestre)),
         )
     except psycopg.Error:
-        logger.exception("Falha ao coletar métricas de provas do SERAp")
-        return _contrato(ano, bimestre, atualizado_em=None, provas=None)
+        logger.exception("Falha ao coletar métricas do SERAp")
+        return _contrato(
+            ano, bimestre, atualizado_em=None, usuarios=None, provas=None
+        )
 
     cache.set(chave, contrato, CACHE_TTL_SEGUNDOS)
     return contrato

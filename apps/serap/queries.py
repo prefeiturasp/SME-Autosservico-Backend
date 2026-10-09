@@ -28,3 +28,15 @@ select
 from prova_aluno
 where criado_em >= %s and criado_em < %s
 """
+
+
+# Alunos do SERAp Estudantes. ``ultimo_login`` é sobrescrito a cada login —
+# não há log de acessos (discovery AB#154284). total = já logaram (mesma
+# regra do SGP); novos_30_dias = cadastrados nos últimos 30 dias.
+USUARIOS_ACESSO_ATIVO = """
+select
+    count(*) filter (where ultimo_login is not null) as total,
+    count(*) filter (where criado_em >= now() - interval '30 days')
+        as novos_30_dias
+from usuario
+"""
