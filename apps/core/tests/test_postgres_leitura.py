@@ -71,3 +71,28 @@ class TestExecutarConsultaLeitura:
             pytest.raises(psycopg.OperationalError),
         ):
             executar_consulta_leitura("dsn", "select 1", tentativas=2)
+
+    def test_abre_a_sessao_em_modo_somente_leitura(self) -> None:
+        """A sessão é read_only, mesmo que o usuário possa escrever."""
+        cm_conexao, _ = _conexao_mock([])
+
+        with patch(
+            "apps.core.postgres_leitura.psycopg.connect",
+            return_value=cm_conexao,
+        ):
+            executar_consulta_leitura("dsn", "select 1")
+
+        assert cm_conexao.__enter__.return_value.read_only is True
+
+    def test_aceita_parametros_nomeados(self) -> None:
+        """Um dicionário de parâmetros chega intacto ao cursor."""
+        cm_conexao, cursor = _conexao_mock([])
+        params = {"dre": "108100"}
+
+        with patch(
+            "apps.core.postgres_leitura.psycopg.connect",
+            return_value=cm_conexao,
+        ):
+            executar_consulta_leitura("dsn", "select %(dre)s", params)
+
+        cursor.execute.assert_called_once_with("select %(dre)s", params)
