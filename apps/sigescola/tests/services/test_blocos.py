@@ -44,7 +44,7 @@ class TestParser:
     def test_sem_linhas_vira_zero(self) -> None:
         """Consulta vazia devolve zero nos escalares."""
         assert parser.parse_inteiro([], "total") == 0
-        assert parser.parse_valor([], "valor") == 0.0
+        assert parser.parse_valor([], "valor") == pytest.approx(0.0)
 
     def test_valor_converte_decimal_para_float(self) -> None:
         """O ``Decimal`` do psycopg vira ``float``."""
@@ -156,8 +156,12 @@ class TestMapper:
         }
         bloco = mapper.mapear_usuarios(0, 0, logins)
 
-        assert bloco["unicos_por_dia"]["variacao_percentual_30_dias"] == 0.0
-        assert bloco["acessos_hoje"]["variacao_percentual_30_dias"] == 0.0
+        assert bloco["unicos_por_dia"][
+            "variacao_percentual_30_dias"
+        ] == pytest.approx(0.0)
+        assert bloco["acessos_hoje"][
+            "variacao_percentual_30_dias"
+        ] == pytest.approx(0.0)
 
     def test_unidades_juntam_tipo_e_nome(self) -> None:
         """O rótulo da UE é ``TIPO NOME``; sem tipo, só o nome."""
