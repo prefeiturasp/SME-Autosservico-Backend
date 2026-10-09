@@ -103,11 +103,18 @@ class TestService:
     def test_sucesso_preenche_e_cacheia(self) -> None:
         """Primeira chamada consulta o banco e cacheia o resultado."""
         with patch("apps.serap.client.consultar") as consultar:
-            consultar.return_value = _LINHA
+            consultar.side_effect = [
+                [{"total": 50, "novos_30_dias": 7}],
+                _LINHA,
+            ]
             primeiro = service.obter_provas(2026, 2)
 
         assert primeiro["atualizado_em"] is not None
         assert primeiro["ano"] == 2026
+        assert primeiro["usuarios"]["com_acesso_ativo"] == {
+            "valor": 50,
+            "variacao_30_dias": 7,
+        }
         assert primeiro["provas"]["total"] == 100
         assert primeiro["provas"]["percentual_finalizadas"] == pytest.approx(
             80.0
@@ -118,7 +125,7 @@ class TestService:
             consultar.assert_not_called()
 
     def test_falha_de_banco_degrada_para_nulo(self) -> None:
-        """Falha de conexão devolve o contrato com o bloco nulo."""
+        """Falha de conexão devolve o contrato com os blocos nulos."""
         with patch(
             "apps.serap.client.consultar",
             side_effect=psycopg.OperationalError("indisponivel"),
@@ -127,4 +134,5 @@ class TestService:
 
         assert resultado["atualizado_em"] is None
         assert resultado["ano"] == 2026
+        assert resultado["usuarios"] is None
         assert resultado["provas"] is None

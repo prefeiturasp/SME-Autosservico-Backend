@@ -19,6 +19,11 @@ _CONTRATO = {
     "atualizado_em": "2026-08-25T10:00:00-03:00",
     "ano": 2026,
     "bimestre": 2,
+    "usuarios": {
+        "com_acesso_ativo": {"valor": 387153, "variacao_30_dias": 1200},
+        "unicos_por_dia": None,
+        "acessos_por_hora": None,
+    },
     "provas": {
         "total": 8398,
         "iniciadas_hoje": 7530,
@@ -82,3 +87,8 @@ class TestMetricasProvasSerapView:
         corpo = response.json()
         assert corpo["provas"]["total"] == 8398
         assert corpo["provas"]["percentual_finalizadas"] == pytest.approx(76.2)
+        assert corpo["usuarios"]["com_acesso_ativo"] == {
+            "valor": 387153,
+            "variacao_30_dias": 1200,
+        }
+        assert corpo["usuarios"]["unicos_por_dia"] is None
