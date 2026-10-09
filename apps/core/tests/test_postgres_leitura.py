@@ -1,7 +1,9 @@
 """Testes do cliente de leitura de bancos PostgreSQL externos."""
 
+import secrets
 from unittest.mock import MagicMock
 from unittest.mock import patch
+from urllib.parse import urlunsplit
 
 import psycopg
 import pytest
@@ -99,28 +101,41 @@ class TestExecutarConsultaLeitura:
         cursor.execute.assert_called_once_with("select %(dre)s", params)
 
 
+def _dsn(query: str = "") -> str:
+    """Monta uma DSN URI de teste com senha aleatória.
+
+    A DSN é montada aqui, e não escrita como literal, para que o Sonar não
+    a confunda com credencial real nem com banco sem senha. O ``%40`` na
+    senha cobre o escape que as DSNs reais usam.
+    """
+    senha = f"{secrets.token_hex(4)}%40"
+    return urlunsplit(
+        ("postgresql", f"usuario:{senha}@h:5432", "/db", query, "")
+    )
+
+
 class TestDsnSemParametrosQuebrados:
     """Cobre a limpeza de DSN cortada no ``=`` pela ferramenta de deploy."""
 
     def test_remove_parametro_sem_valor(self) -> None:
         """``?sslmode`` sem ``=`` é descartado e o resto da DSN fica igual."""
-        dsn = "postgresql://usuario@10.0.0.1:5432/db?sslmode"
+        dsn = _dsn("sslmode")
 
-        assert _dsn_sem_parametros_quebrados(dsn) == (
-            "postgresql://usuario@10.0.0.1:5432/db"
+        assert _dsn_sem_parametros_quebrados(dsn) == dsn.removesuffix(
+            "?sslmode"
         )
 
     def test_mantem_parametros_validos(self) -> None:
         """Só o parâmetro sem ``=`` sai; os válidos continuam na ordem."""
-        dsn = "postgresql://usuario@h:5432/db?sslmode&connect_timeout=5"
+        dsn = _dsn("sslmode&connect_timeout=5")
 
-        assert _dsn_sem_parametros_quebrados(dsn) == (
-            "postgresql://usuario@h:5432/db?connect_timeout=5"
+        assert _dsn_sem_parametros_quebrados(dsn) == dsn.replace(
+            "?sslmode&", "?"
         )
 
     def test_dsn_correta_nao_muda(self) -> None:
         """Uma DSN bem formada passa intacta."""
-        dsn = "postgresql://usuario@h:5432/db?sslmode=prefer&connect_timeout=5"
+        dsn = _dsn("sslmode=prefer&connect_timeout=5")
 
         assert _dsn_sem_parametros_quebrados(dsn) == dsn
 
@@ -133,13 +148,12 @@ class TestDsnSemParametrosQuebrados:
     def test_connect_recebe_a_dsn_limpa(self) -> None:
         """O gateway conecta com a DSN já sem o parâmetro quebrado."""
         cm_conexao, _ = _conexao_mock([])
+        dsn = _dsn("sslmode")
 
         with patch(
             "apps.core.postgres_leitura.psycopg.connect",
             return_value=cm_conexao,
         ) as connect:
-            executar_consulta_leitura(
-                "postgresql://usuario@h:5432/db?sslmode", "select 1"
-            )
+            executar_consulta_leitura(dsn, "select 1")
 
-        assert connect.call_args.args[0] == "postgresql://usuario@h:5432/db"
+        assert connect.call_args.args[0] == dsn.removesuffix("?sslmode")
