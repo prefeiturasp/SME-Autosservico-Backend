@@ -104,29 +104,29 @@ class TestDsnSemParametrosQuebrados:
 
     def test_remove_parametro_sem_valor(self) -> None:
         """``?sslmode`` sem ``=`` é descartado e o resto da DSN fica igual."""
-        dsn = "postgresql://u:p%40ss@10.0.0.1:5432/db?sslmode"
+        dsn = "postgresql://usuario@10.0.0.1:5432/db?sslmode"
 
         assert _dsn_sem_parametros_quebrados(dsn) == (
-            "postgresql://u:p%40ss@10.0.0.1:5432/db"
+            "postgresql://usuario@10.0.0.1:5432/db"
         )
 
     def test_mantem_parametros_validos(self) -> None:
         """Só o parâmetro sem ``=`` sai; os válidos continuam na ordem."""
-        dsn = "postgresql://u:p@h:5432/db?sslmode&connect_timeout=5"
+        dsn = "postgresql://usuario@h:5432/db?sslmode&connect_timeout=5"
 
         assert _dsn_sem_parametros_quebrados(dsn) == (
-            "postgresql://u:p@h:5432/db?connect_timeout=5"
+            "postgresql://usuario@h:5432/db?connect_timeout=5"
         )
 
     def test_dsn_correta_nao_muda(self) -> None:
         """Uma DSN bem formada passa intacta."""
-        dsn = "postgresql://u:p@h:5432/db?sslmode=prefer&connect_timeout=5"
+        dsn = "postgresql://usuario@h:5432/db?sslmode=prefer&connect_timeout=5"
 
         assert _dsn_sem_parametros_quebrados(dsn) == dsn
 
     def test_dsn_chave_valor_nao_muda(self) -> None:
         """O formato ``host=... dbname=...`` não é URL e passa intacto."""
-        dsn = "host=h port=5432 dbname=db user=u password=p"
+        dsn = "host=h port=5432 dbname=db user=usuario"
 
         assert _dsn_sem_parametros_quebrados(dsn) == dsn
 
@@ -139,7 +139,7 @@ class TestDsnSemParametrosQuebrados:
             return_value=cm_conexao,
         ) as connect:
             executar_consulta_leitura(
-                "postgresql://u:p@h:5432/db?sslmode", "select 1"
+                "postgresql://usuario@h:5432/db?sslmode", "select 1"
             )
 
-        assert connect.call_args.args[0] == "postgresql://u:p@h:5432/db"
+        assert connect.call_args.args[0] == "postgresql://usuario@h:5432/db"
