@@ -19,3 +19,19 @@ def mapear_provas(agregado: dict[str, int]) -> dict[str, Any]:
         "finalizadas": finalizadas,
         "percentual_finalizadas": percentual,
     }
+
+
+def mapear_usuarios(acesso_ativo: dict[str, int]) -> dict[str, Any]:
+    """Monta o bloco ``usuarios`` do contrato.
+
+    O SERAp Estudantes não tem log de acessos: ``unicos_por_dia`` e
+    ``acessos_por_hora`` são sempre ``None``.
+    """
+    return {
+        "com_acesso_ativo": {
+            "valor": acesso_ativo["valor"],
+            "variacao_30_dias": acesso_ativo["variacao_30_dias"],
+        },
+        "unicos_por_dia": None,
+        "acessos_por_hora": None,
+    }

@@ -21,3 +21,11 @@ def obter_provas(
     else:
         linhas = client.consultar(queries.PROVAS_AGREGADO_JANELA, janela)
     return mapper.mapear_provas(parser.parse_provas(linhas))
+
+
+def obter_usuarios() -> dict[str, Any]:
+    """Coleta e monta o bloco ``usuarios`` do contrato."""
+    acesso_ativo = parser.parse_acesso_ativo(
+        client.consultar(queries.USUARIOS_ACESSO_ATIVO)
+    )
+    return mapper.mapear_usuarios(acesso_ativo)
