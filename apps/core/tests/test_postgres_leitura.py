@@ -6,6 +6,7 @@ from unittest.mock import patch
 import psycopg
 import pytest
 
+from apps.core.postgres_leitura import _dsn_sem_parametros_quebrados
 from apps.core.postgres_leitura import executar_consulta_leitura
 
 
@@ -96,3 +97,49 @@ class TestExecutarConsultaLeitura:
             executar_consulta_leitura("dsn", "select %(dre)s", params)
 
         cursor.execute.assert_called_once_with("select %(dre)s", params)
+
+
+class TestDsnSemParametrosQuebrados:
+    """Cobre a limpeza de DSN cortada no ``=`` pela ferramenta de deploy."""
+
+    def test_remove_parametro_sem_valor(self) -> None:
+        """``?sslmode`` sem ``=`` é descartado e o resto da DSN fica igual."""
+        dsn = "postgresql://u:p%40ss@10.0.0.1:5432/db?sslmode"
+
+        assert _dsn_sem_parametros_quebrados(dsn) == (
+            "postgresql://u:p%40ss@10.0.0.1:5432/db"
+        )
+
+    def test_mantem_parametros_validos(self) -> None:
+        """Só o parâmetro sem ``=`` sai; os válidos continuam na ordem."""
+        dsn = "postgresql://u:p@h:5432/db?sslmode&connect_timeout=5"
+
+        assert _dsn_sem_parametros_quebrados(dsn) == (
+            "postgresql://u:p@h:5432/db?connect_timeout=5"
+        )
+
+    def test_dsn_correta_nao_muda(self) -> None:
+        """Uma DSN bem formada passa intacta."""
+        dsn = "postgresql://u:p@h:5432/db?sslmode=prefer&connect_timeout=5"
+
+        assert _dsn_sem_parametros_quebrados(dsn) == dsn
+
+    def test_dsn_chave_valor_nao_muda(self) -> None:
+        """O formato ``host=... dbname=...`` não é URL e passa intacto."""
+        dsn = "host=h port=5432 dbname=db user=u password=p"
+
+        assert _dsn_sem_parametros_quebrados(dsn) == dsn
+
+    def test_connect_recebe_a_dsn_limpa(self) -> None:
+        """O gateway conecta com a DSN já sem o parâmetro quebrado."""
+        cm_conexao, _ = _conexao_mock([])
+
+        with patch(
+            "apps.core.postgres_leitura.psycopg.connect",
+            return_value=cm_conexao,
+        ) as connect:
+            executar_consulta_leitura(
+                "postgresql://u:p@h:5432/db?sslmode", "select 1"
+            )
+
+        assert connect.call_args.args[0] == "postgresql://u:p@h:5432/db"
