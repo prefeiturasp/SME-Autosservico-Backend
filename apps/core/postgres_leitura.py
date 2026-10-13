@@ -1,7 +1,10 @@
 """Leitura somente-leitura de bancos PostgreSQL de sistemas externos."""
 
 import time
+from collections.abc import Mapping
 from typing import Any
+from urllib.parse import urlsplit
+from urllib.parse import urlunsplit
 
 import psycopg
 from psycopg.rows import dict_row
@@ -10,22 +13,42 @@ _TENTATIVAS_PADRAO = 3
 _BACKOFF_BASE_SEGUNDOS = 0.5
 
 
+def _dsn_sem_parametros_quebrados(dsn: str) -> str:
+    """Descarta da query string da DSN os parâmetros sem ``=``.
+
+    Ferramentas de deploy que separam ``CHAVE=VALOR`` em todo ``=`` cortam a
+    DSN no ``=`` do primeiro parâmetro (``...?sslmode``), e o psycopg recusa
+    a URL inteira. O formato ``chave=valor`` (sem ``://``) passa intacto.
+    """
+    if "://" not in dsn:
+        return dsn
+    partes = urlsplit(dsn)
+    query = "&".join(p for p in partes.query.split("&") if "=" in p)
+    return urlunsplit(partes._replace(query=query))
+
+
 def executar_consulta_leitura(
     connection_string: str,
     query: str,
-    params: tuple[Any, ...] = (),
+    params: tuple[Any, ...] | Mapping[str, Any] = (),
     tentativas: int = _TENTATIVAS_PADRAO,
 ) -> list[dict[str, Any]]:
-    """Executa uma consulta somente-leitura, com retry e backoff."""
+    """Executa uma consulta somente-leitura, com retry e backoff.
+
+    A sessão é aberta em ``read_only``: mesmo que o usuário do banco tenha
+    permissão de escrita, o PostgreSQL recusa qualquer escrita.
+    """
     ultimo_erro: psycopg.OperationalError | None = None
     for tentativa in range(1, tentativas + 1):
         try:
             with (
                 psycopg.connect(
-                    connection_string, row_factory=dict_row
+                    _dsn_sem_parametros_quebrados(connection_string),
+                    row_factory=dict_row,
                 ) as conexao,
                 conexao.cursor() as cursor,
             ):
+                conexao.read_only = True
                 cursor.execute(query, params)
                 return cursor.fetchall()
         except psycopg.OperationalError as erro:

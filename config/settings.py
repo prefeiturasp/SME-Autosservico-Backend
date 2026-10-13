@@ -86,6 +86,7 @@ LOCAL_APPS = [
     "apps.sgp",
     "apps.serap",
     "apps.intranet",
+    "apps.sigescola",
 ]
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
@@ -170,6 +171,11 @@ SERAP_ESTUDANTES_DSN = env("SERAP_ESTUDANTES_DSN", default="")
 # no formato mysql://usuario:senha@host:porta/banco. Timeouts de conexão e
 # leitura ficam em apps/core/mysql_leitura.py.
 INTRANET_DSN = env("INTRANET_DSN", default="")
+
+# Connection string somente-leitura do banco do SIG-Escola (PTRF,
+# db_ptrf). Mesmo padrão dos demais DSNs de leitura; o gateway também
+# abre a sessão em read_only (apps/core/postgres_leitura.py).
+SIGESCOLA_DSN = env("SIGESCOLA_DSN", default="")
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
