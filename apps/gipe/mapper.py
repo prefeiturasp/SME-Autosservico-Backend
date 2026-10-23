@@ -1,6 +1,7 @@
 """Mapper dos dados do GIPE para o contrato de entrega ao BFF."""
 
 import re
+from dataclasses import dataclass
 from datetime import date
 from typing import Any
 
@@ -212,60 +213,73 @@ def mapear_analistas(
     )
 
 
+@dataclass(frozen=True)
+class DadosOcorrencias:
+    """Cards de ocorrências já interpretados pelo parser."""
+
+    status_geral: dict[str, int]
+    tempos: dict[str, float | None]
+    sem_movimentacao_7_dias: int
+    media_movimentacoes: float | None
+    por_dre: dict[str, int]
+    por_ue: dict[str, int]
+    por_categoria: dict[str, int]
+    por_tipo: dict[bool, dict[str, int]]
+    por_mes: list[tuple[date, int]]
+    por_bimestre: dict[int, int]
+    analistas: list[dict[str, Any]]
+    tratadas_por_dre: dict[str, int]
+
+
+@dataclass(frozen=True)
+class Nomes:
+    """Nomes buscados no banco de usuários: unidades (EOL) e analistas (RF)."""
+
+    unidades: dict[str, str]
+    analistas: dict[str, str]
+
+
 def mapear_ocorrencias(
-    *,
-    status_geral: dict[str, int],
-    tempos: dict[str, float | None],
-    sem_movimentacao_7_dias: int,
-    media_movimentacoes: float | None,
-    por_dre: dict[str, int],
-    por_ue: dict[str, int],
-    por_categoria: dict[str, int],
-    por_tipo: dict[bool, dict[str, int]],
-    por_mes: list[tuple[date, int]],
-    por_bimestre: dict[int, int],
-    analistas: list[dict[str, Any]],
-    tratadas_por_dre: dict[str, int],
-    nomes_unidades: dict[str, str],
-    nomes_analistas: dict[str, str],
+    dados: DadosOcorrencias, nomes: Nomes
 ) -> dict[str, Any]:
     """Monta o bloco ``ocorrencias``.
 
     "Dentro/fora do prazo" ficam nulos: o GIPE não tem SLA definido.
     """
+    media = dados.media_movimentacoes
     return {
         "status_geral": {
-            "cadastrados": status_geral["cadastrados"],
-            "abertas": status_geral["abertas"],
-            "em_andamento": status_geral["em_andamento"],
-            "finalizadas": status_geral["finalizadas"],
+            "cadastrados": dados.status_geral["cadastrados"],
+            "abertas": dados.status_geral["abertas"],
+            "em_andamento": dados.status_geral["em_andamento"],
+            "finalizadas": dados.status_geral["finalizadas"],
         },
-        "tempo_resposta": mapear_tempo_resposta(tempos),
+        "tempo_resposta": mapear_tempo_resposta(dados.tempos),
         "prazos_movimentacoes": {
             "dentro_do_prazo": None,
             "fora_do_prazo": None,
-            "sem_movimentacao_7_dias": sem_movimentacao_7_dias,
+            "sem_movimentacao_7_dias": dados.sem_movimentacao_7_dias,
             "media_movimentacoes_por_ocorrencia": (
-                None
-                if media_movimentacoes is None
-                else round(media_movimentacoes, 1)
+                None if media is None else round(media, 1)
             ),
         },
-        "por_dre": _por_unidade(por_dre, nomes_unidades, dre=True),
+        "por_dre": _por_unidade(dados.por_dre, nomes.unidades, dre=True),
         "por_unidade_educacional": _por_unidade(
-            por_ue, nomes_unidades, dre=False
+            dados.por_ue, nomes.unidades, dre=False
         ),
         "por_categoria": {
-            "patrimoniais": por_categoria["patrimoniais"],
-            "interpessoais": por_categoria["interpessoais"],
+            "patrimoniais": dados.por_categoria["patrimoniais"],
+            "interpessoais": dados.por_categoria["interpessoais"],
         },
-        "por_tipo_patrimonial": _itens(por_tipo[True]),
-        "por_tipo_interpessoal": _itens(por_tipo[False]),
-        "por_mes": mapear_por_mes(por_mes),
-        "por_periodo_letivo": mapear_por_bimestre(por_bimestre),
-        "tratadas_por_analista": mapear_analistas(analistas, nomes_analistas),
+        "por_tipo_patrimonial": _itens(dados.por_tipo[True]),
+        "por_tipo_interpessoal": _itens(dados.por_tipo[False]),
+        "por_mes": mapear_por_mes(dados.por_mes),
+        "por_periodo_letivo": mapear_por_bimestre(dados.por_bimestre),
+        "tratadas_por_analista": mapear_analistas(
+            dados.analistas, nomes.analistas
+        ),
         "tratadas_por_dre": _por_unidade(
-            tratadas_por_dre, nomes_unidades, dre=True
+            dados.tratadas_por_dre, nomes.unidades, dre=True
         ),
     }
 

@@ -79,7 +79,7 @@ def obter_ocorrencias(
     analistas = parser.parse_analistas(
         client.consultar_ocorrencias(queries.TRATADAS_POR_ANALISTA, janela)
     )
-    return mapper.mapear_ocorrencias(
+    dados = mapper.DadosOcorrencias(
         status_geral=parser.parse_inteiros(
             client.consultar_ocorrencias(queries.STATUS_GERAL, janela),
             ("cadastrados", "abertas", "em_andamento", "finalizadas"),
@@ -117,9 +117,12 @@ def obter_ocorrencias(
         ),
         analistas=analistas,
         tratadas_por_dre=tratadas_por_dre,
-        nomes_unidades=_nomes_unidades([*por_dre, *por_ue, *tratadas_por_dre]),
-        nomes_analistas=_nomes_analistas(a["username"] for a in analistas),
     )
+    nomes = mapper.Nomes(
+        unidades=_nomes_unidades([*por_dre, *por_ue, *tratadas_por_dre]),
+        analistas=_nomes_analistas(a["username"] for a in analistas),
+    )
+    return mapper.mapear_ocorrencias(dados, nomes)
 
 
 def obter_usuarios() -> dict[str, Any]:
