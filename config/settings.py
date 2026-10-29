@@ -87,6 +87,7 @@ LOCAL_APPS = [
     "apps.serap",
     "apps.intranet",
     "apps.sigescola",
+    "apps.gipe",
 ]
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
@@ -176,6 +177,14 @@ INTRANET_DSN = env("INTRANET_DSN", default="")
 # db_ptrf). Mesmo padrão dos demais DSNs de leitura; o gateway também
 # abre a sessão em read_only (apps/core/postgres_leitura.py).
 SIGESCOLA_DSN = env("SIGESCOLA_DSN", default="")
+
+# Connection strings somente-leitura dos três bancos do GIPE: ocorrências
+# (MS de intercorrências), anexos (MS de anexos) e usuários/unidades
+# (SME-Gipe-Backend). Não há FK entre eles: o cruzamento é feito em Python.
+# Em ambiente local os dois MS podem apontar para o mesmo banco.
+GIPE_OCORRENCIAS_DSN = env("GIPE_OCORRENCIAS_DSN", default="")
+GIPE_ANEXOS_DSN = env("GIPE_ANEXOS_DSN", default="")
+GIPE_USUARIOS_DSN = env("GIPE_USUARIOS_DSN", default="")
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
