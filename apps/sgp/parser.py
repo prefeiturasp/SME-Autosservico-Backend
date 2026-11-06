@@ -21,19 +21,48 @@ def parse_de_unidades(linhas: list[dict[str, Any]]) -> dict[str, int]:
     }
 
 
-def parse_por_situacao(linhas: list[dict[str, Any]]) -> dict[int, int]:
-    """Interpreta linhas ``(situacao, quantidade)`` num dicionário."""
+def parse_por_dre_situacao(
+    linhas: list[dict[str, Any]],
+) -> dict[str, dict[int, int]]:
+    """Interpreta linhas ``(dre, situacao, quantidade)`` por DRE."""
+    por_dre: dict[str, dict[int, int]] = {}
+    for linha in linhas:
+        if linha.get("dre") is None or linha.get("situacao") is None:
+            continue
+        situacoes = por_dre.setdefault(str(linha["dre"]), {})
+        situacao = int(linha["situacao"])
+        situacoes[situacao] = situacoes.get(situacao, 0) + int(
+            linha["quantidade"] or 0
+        )
+    return por_dre
+
+
+def parse_previsto_por_dre(linhas: list[dict[str, Any]]) -> dict[str, int]:
+    """Interpreta linhas ``(dre, previsto)`` num dicionário."""
     return {
-        int(linha["situacao"]): int(linha["quantidade"] or 0)
+        str(linha["dre"]): int(linha["previsto"] or 0)
         for linha in linhas
-        if linha.get("situacao") is not None
+        if linha.get("dre") is not None
     }
 
 
-def parse_escalar(linhas: list[dict[str, Any]], campo: str) -> int:
-    """Extrai um único inteiro da primeira linha do resultado."""
-    linha = linhas[0] if linhas else {}
-    return int(linha.get(campo) or 0)
+def parse_periodos(linhas: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Interpreta as linhas de bimestres do calendário escolar."""
+    return [
+        {
+            "ano_letivo": int(linha["ano_letivo"]),
+            "modalidade": int(linha["modalidade"]),
+            "semestre": (
+                int(linha["semestre"])
+                if linha.get("semestre") is not None
+                else None
+            ),
+            "bimestre": int(linha["bimestre"]),
+            "inicio": linha["inicio"],
+            "fim": linha["fim"],
+        }
+        for linha in linhas
+    ]
 
 
 def parse_sondagens(linhas: list[dict[str, Any]]) -> dict[str, int]:
