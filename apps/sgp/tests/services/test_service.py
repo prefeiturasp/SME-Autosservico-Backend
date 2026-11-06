@@ -97,8 +97,8 @@ class TestService:
 class TestPeriodos:
     """Cobre cache e degradação das opções de período."""
 
-    def test_consulta_ano_corrente_e_anterior_e_cacheia(self) -> None:
-        """Busca o ano corrente e o anterior; a segunda chamada é cache."""
+    def test_consulta_so_o_ano_corrente_e_cacheia(self) -> None:
+        """Busca só o ano corrente; a segunda chamada é cache."""
         with (
             patch("apps.sgp.client.consultar", return_value=[]) as consultar,
             patch(
@@ -111,7 +111,7 @@ class TestPeriodos:
 
         consultar.assert_called_once()
         assert consultar.call_args.args[1] == {
-            "ano_inicial": 2025,
+            "ano_inicial": 2026,
             "ano_final": 2026,
         }
 

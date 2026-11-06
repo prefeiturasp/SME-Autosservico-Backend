@@ -92,7 +92,7 @@ def obter_metricas(periodo: Periodo) -> dict[str, Any]:
 
 
 def obter_periodos() -> dict[str, Any]:
-    """Opções do filtro de período, do ano corrente e do anterior.
+    """Opções do filtro de período do ano letivo corrente.
 
     Se o banco falhar, devolve ``periodos`` nulo e não cacheia.
     """
@@ -103,7 +103,7 @@ def obter_periodos() -> dict[str, Any]:
     ano_corrente = timezone.localdate().year
     try:
         contrato = {
-            "periodos": handler.obter_periodos(ano_corrente - 1, ano_corrente)
+            "periodos": handler.obter_periodos(ano_corrente, ano_corrente)
         }
     except psycopg.Error:
         logger.exception("Falha ao coletar períodos do SGP")
