@@ -1,8 +1,9 @@
 """Consultas SQL de leitura no banco do SGP.
 
 Queries reais de produção do NovoSGP, levantadas no discovery de
-contrato (AB#154278). Os parâmetros são posicionais (``%s``) na ordem
-``(ano_letivo, bimestre)`` — ou apenas ``(ano_letivo,)`` quando indicado.
+contrato (AB#154278 e AB#159683). Usuários, frequências e sondagens usam
+parâmetros posicionais ``(ano_letivo, bimestre)``; as consultas por
+segmento usam ``Periodo.parametros``.
 """
 
 USUARIOS_ACESSO_ATIVO = """
@@ -21,20 +22,38 @@ from abrangencia
 where ue_id is not null
 """
 
-FECHAMENTO_POR_SITUACAO = """
+# Segmento pela modalidade da turma: 3 = EJA (filtra o semestre também),
+# 5 = Fundamental e 6 = Médio. Vai como parâmetro pra não montar SQL com
+# string. A sigla da DRE ("DRE - BT" -> "BT") segue a regra do SGP.
+
+FECHAMENTO_POR_DRE_SITUACAO = """
 select
+    trim(replace(d.abreviacao, 'DRE -', '')) as dre,
     case when cfct.status in (0, 1) then 0 else cfct.status end as situacao,
     count(cfct.id) as quantidade
 from consolidado_fechamento_componente_turma cfct
 inner join turma t on t.id = cfct.turma_id
+inner join ue on ue.id = t.ue_id
+inner join dre d on d.id = ue.dre_id
 where t.tipo_turma in (1, 2, 7)
-    and t.ano_letivo = %s
-    and cfct.bimestre = %s
-group by 1
+    and t.ano_letivo = %(ano_letivo)s
+    and cfct.bimestre = %(bimestre)s
+    and not cfct.excluido
+    and (
+        (%(segmento)s = 'fundamental_medio' and t.modalidade_codigo in (5, 6))
+        or (
+            %(segmento)s = 'eja'
+            and t.modalidade_codigo = 3
+            and t.semestre = %(semestre)s
+        )
+    )
+group by 1, 2
 """
 
-CONSELHO_CLASSE_POR_SITUACAO = """
-select cccat.status as situacao,
+CONSELHO_CLASSE_POR_DRE_SITUACAO = """
+select
+    trim(replace(d.abreviacao, 'DRE -', '')) as dre,
+    cccat.status as situacao,
     count(distinct cccat.aluno_codigo) as quantidade
 from consolidado_conselho_classe_aluno_turma cccat
 inner join consolidado_conselho_classe_aluno_turma_nota cccatn
@@ -44,23 +63,63 @@ inner join conselho_classe_aluno cca
 inner join conselho_classe cc on cc.id = cca.conselho_classe_id
 inner join fechamento_turma ft on ft.id = cc.fechamento_turma_id
 inner join turma t on t.id = ft.turma_id and cccat.turma_id = t.id
+inner join ue on ue.id = t.ue_id
+inner join dre d on d.id = ue.dre_id
 where t.tipo_turma = 1
-    and t.ano_letivo = %s
-    and coalesce(cccatn.bimestre, 0) = %s
+    and t.ano_letivo = %(ano_letivo)s
+    and coalesce(cccatn.bimestre, 0) = %(bimestre)s
     and not cccat.excluido
-group by cccat.status
+    and (
+        (%(segmento)s = 'fundamental_medio' and t.modalidade_codigo in (5, 6))
+        or (
+            %(segmento)s = 'eja'
+            and t.modalidade_codigo = 3
+            and t.semestre = %(semestre)s
+        )
+    )
+group by 1, 2
 """
 
-# Fonte de "alunos ativos na turma" para calcular o bucket
-# "não iniciados" do conselho de classe. Aproximação de trabalho
-# (situacaomatricula = 'Ativo'), não confirmada formalmente pelo SGP.
-CONSELHO_CLASSE_ALUNOS_ATIVOS = """
-select count(distinct at.codigoaluno) as alunos_ativos
-from extracao.alunos_turmas at
-join turma t on t.turma_id = at.codigoturma
-where at.situacaomatricula = 'Ativo'
-    and t.ano_letivo = %s
-    and t.tipo_turma = 1
+# Esperado do conselho: matrículas por turma que o SGP já consolida do EOL.
+CONSELHO_CLASSE_PREVISTO_POR_DRE = """
+select
+    trim(replace(d.abreviacao, 'DRE -', '')) as dre,
+    sum(cmt.quantidade) as previsto
+from consolidacao_matricula_turma cmt
+inner join turma t on t.id = cmt.turma_id
+inner join ue on ue.id = t.ue_id
+inner join dre d on d.id = ue.dre_id
+where t.tipo_turma = 1
+    and t.ano_letivo = %(ano_letivo)s
+    and (
+        (%(segmento)s = 'fundamental_medio' and t.modalidade_codigo in (5, 6))
+        or (
+            %(segmento)s = 'eja'
+            and t.modalidade_codigo = 3
+            and t.semestre = %(semestre)s
+        )
+    )
+group by 1
+"""
+
+
+# Bimestres já iniciados do calendário (modalidade 1 = Fund./Médio, 2 = EJA).
+PERIODOS_CALENDARIO = """
+select
+    tc.ano_letivo,
+    tc.modalidade,
+    tc.semestre,
+    pe.bimestre,
+    min(pe.periodo_inicio)::date as inicio,
+    max(pe.periodo_fim)::date as fim
+from tipo_calendario tc
+inner join periodo_escolar pe on pe.tipo_calendario_id = tc.id
+where tc.ano_letivo between %(ano_inicial)s and %(ano_final)s
+    and not tc.excluido
+    and tc.modalidade in (1, 2)
+group by 1, 2, 3, 4
+having min(pe.periodo_inicio)::date <= current_date
+order by 1, 2, 3, 4
 """
 
 # Sondagens de escrita realizadas x esperadas, por ano letivo e bimestre.
