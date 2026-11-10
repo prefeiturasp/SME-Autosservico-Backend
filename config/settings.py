@@ -88,6 +88,7 @@ LOCAL_APPS = [
     "apps.intranet",
     "apps.sigescola",
     "apps.gipe",
+    "apps.bensfisicos",
 ]
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
@@ -185,6 +186,10 @@ SIGESCOLA_DSN = env("SIGESCOLA_DSN", default="")
 GIPE_OCORRENCIAS_DSN = env("GIPE_OCORRENCIAS_DSN", default="")
 GIPE_ANEXOS_DSN = env("GIPE_ANEXOS_DSN", default="")
 GIPE_USUARIOS_DSN = env("GIPE_USUARIOS_DSN", default="")
+
+# Connection string somente-leitura do banco do Bens Físicos (métricas de
+# patrimônio).
+BENS_FISICOS_DSN = env("BENS_FISICOS_DSN", default="")
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
