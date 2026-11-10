@@ -3,6 +3,8 @@
 from decimal import Decimal
 from typing import Any
 
+import pytest
+
 from apps.bensfisicos import parser
 
 
@@ -15,10 +17,10 @@ class TestParser:
     def test_parse_decimal_converte_para_float(self) -> None:
         valor = parser.parse_decimal([{"m": Decimal("0.3")}], "m")
 
-        assert valor == 0.3
+        assert valor == pytest.approx(0.3)
         assert type(valor) is float
-        assert parser.parse_decimal([{"m": None}], "m") == 0.0
-        assert parser.parse_decimal([], "m") == 0.0
+        assert parser.parse_decimal([{"m": None}], "m") == pytest.approx(0.0)
+        assert parser.parse_decimal([], "m") == pytest.approx(0.0)
 
     def test_parse_por_unidade(self) -> None:
         linhas: list[dict[str, Any]] = [
