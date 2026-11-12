@@ -18,6 +18,13 @@ urlpatterns = [
     path(_API_V1, include("apps.intranet.api.urls", namespace="intranet")),
     path(_API_V1, include("apps.sigescola.api.urls", namespace="sigescola")),
     path(_API_V1, include("apps.gipe.api.urls", namespace="gipe")),
+    path(
+        _API_V1,
+        include(
+            "apps.role_agroecologico.api.urls",
+            namespace="role_agroecologico",
+        ),
+    ),
     path(_API_V1, include("config.api_router")),
     path(f"{_API_V1}schema/", SpectacularAPIView.as_view(), name="api-schema"),
     path(
