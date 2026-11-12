@@ -25,6 +25,9 @@ urlpatterns = [
             namespace="role_agroecologico",
         ),
     ),
+    path(
+        _API_V1, include("apps.bensfisicos.api.urls", namespace="bensfisicos")
+    ),
     path(_API_V1, include("config.api_router")),
     path(f"{_API_V1}schema/", SpectacularAPIView.as_view(), name="api-schema"),
     path(

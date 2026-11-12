@@ -89,6 +89,7 @@ LOCAL_APPS = [
     "apps.sigescola",
     "apps.gipe",
     "apps.role_agroecologico",
+    "apps.bensfisicos",
 ]
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
@@ -192,6 +193,10 @@ GIPE_USUARIOS_DSN = env("GIPE_USUARIOS_DSN", default="")
 # ambiente (prod_wp_ em produção, hom_wp_ em homologação, dev_wp_ local).
 ROLE_AGRO_DSN = env("ROLE_AGRO_DSN", default="")
 ROLE_AGRO_PREFIXO_TABELAS = env("ROLE_AGRO_PREFIXO_TABELAS", default="hom_wp_")
+
+# Connection string somente-leitura do banco do Bens Físicos (métricas de
+# patrimônio).
+BENS_FISICOS_DSN = env("BENS_FISICOS_DSN", default="")
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
